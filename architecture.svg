@@ -1,0 +1,31 @@
+<svg width="700" height="340" xmlns="http://www.w3.org/2000/svg">
+  <rect x="30" y="40" width="160" height="60" fill="#e0e7ef" stroke="#333" rx="8"/>
+  <text x="110" y="70" font-size="15" text-anchor="middle" fill="#222">NHI Client</text>
+  <rect x="250" y="40" width="160" height="60" fill="#e0e7ef" stroke="#333" rx="8"/>
+  <text x="330" y="70" font-size="15" text-anchor="middle" fill="#222">vulnerable_bind (DNS)</text>
+  <rect x="470" y="40" width="180" height="60" fill="#e0e7ef" stroke="#333" rx="8"/>
+  <text x="560" y="70" font-size="15" text-anchor="middle" fill="#222">mock_secrets_manager</text>
+  <rect x="470" y="200" width="180" height="60" fill="#e0e7ef" stroke="#333" rx="8"/>
+  <text x="560" y="230" font-size="15" text-anchor="middle" fill="#222">api-service</text>
+  <!-- Normal flow arrows -->
+  <line x1="190" y1="70" x2="250" y2="70" stroke="#2a7" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="410" y1="70" x2="470" y2="70" stroke="#2a7" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="560" y1="100" x2="560" y2="200" stroke="#2a7" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- Attack flow -->
+  <line x1="330" y1="110" x2="330" y2="160" stroke="#c00" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="340" y="145" font-size="13" fill="#c00">Exploit: CVE-2025-40775</text>
+  <line x1="330" y1="160" x2="330" y2="260" stroke="#c00" stroke-width="2" stroke-dasharray="6,4"/>
+  <line x1="330" y1="260" x2="470" y2="230" stroke="#c00" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <text x="350" y="275" font-size="13" fill="#c00">Fallback: Static NHI</text>
+  <!-- Markers -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  <!-- Legend -->
+  <rect x="30" y="280" width="18" height="18" fill="#2a7"/>
+  <text x="55" y="295" font-size="13" fill="#222">Normal flow</text>
+  <rect x="180" y="280" width="18" height="18" fill="none" stroke="#c00" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="205" y="295" font-size="13" fill="#222">Attack/fallback path</text>
+</svg>
