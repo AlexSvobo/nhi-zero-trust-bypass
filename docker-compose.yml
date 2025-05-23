@@ -1,0 +1,57 @@
+services:
+  bind-dns:
+    # Instead of 'image', we now use 'build' to build our custom image
+    build:
+      context: ./docker/bind-vulnerable-build # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile                  # Name of the Dockerfile
+    container_name: vulnerable_bind
+    ports:
+      - "53530:53/udp" # Expose DNS port for host access on 53530
+      - "53530:53/tcp"
+    volumes:
+      # We are now baking named.conf into the image, so no need to mount it here
+      # If you *wanted* to modify named.conf without rebuilding, you could keep this
+      # - ./docker/bind-vulnerable-build/config/named.conf:/etc/bind/named.conf
+      # But for simplicity, we'll bake it in for now.
+      # We might want persistent storage for cache and logs if debugging later:
+      - bind_cache:/var/cache/bind
+      - bind_logs:/var/log/bind
+    environment:
+      - TZ=America/New_York
+    cap_add:
+      - NET_ADMIN # Needed for some DNS operations
+    networks:
+      - project_network
+
+  secrets-manager:
+    build:
+      context: ./secrets-manager-mock # Points to the directory containing its Dockerfile and app
+    container_name: mock_secrets_manager
+    ports:
+      - "8200:8200" # Simulate Vault's default port
+    environment:
+      MOCK_DNS_SERVER: vulnerable_bind # Use service name for internal Docker DNS resolution
+    networks:
+      - project_network
+    depends_on:
+      - bind-dns
+
+  api-service:
+    build:
+      context: ./api-service-mock # Create this directory and its files
+    container_name: mock_api_service
+    ports:
+      - "5000:5000"
+    networks:
+      - project_network
+    depends_on:
+      - secrets-manager # Assumed dependency on secrets manager for its function
+
+networks:
+  project_network:
+    driver: bridge
+
+# Define volumes for persistence
+volumes:
+  bind_cache:
+  bind_logs:

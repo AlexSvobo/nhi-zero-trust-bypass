@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+
+# VSCode
+.vscode/
+
+# Docker
+*.log
+bind_cache/
+bind_logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.pcap
