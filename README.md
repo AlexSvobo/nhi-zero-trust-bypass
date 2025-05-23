@@ -2,6 +2,39 @@
 
 ![Architecture and Attack Flow](architecture.svg)
 
+## Screenshots
+
+Below are real screenshots from the demonstration. For more, see [screenshots/README.md](screenshots/README.md).
+
+### 1. DNS Exploit (BIND Crash)
+
+**A. Exploit Packet Sent**
+
+![BIND 9.20.8 crafted packet sent](screenshots/bind_crash.png)
+*Scapy sends a malformed TSIG DNS packet to BIND (see `dns_exploit.py`).*
+
+**B. Container Crash Confirmed**
+
+![BIND crash container status](screenshots/bind_crash2.png)
+*`docker ps -a` shows the BIND container has exited after the exploit.*
+
+**C. Crash Log Evidence**
+
+![BIND crash log](screenshots/bind_crash3.png)
+*Relevant assertion failure and crash log from `docker logs vulnerable_bind`.*
+
+### 2. NHI Secret Rotation Failure
+
+![NHI client fails to rotate secret](screenshots/nhi_rotation_failure.png)
+*NHI client (`client_nhi_rotation.py`) fails to rotate secret due to DNS outage, falls back to static credential.*
+
+### 3. Zero-Trust Bypass
+
+![Bypass using static credential](screenshots/zero_trust_bypass.png)
+*Bypass demonstration (`bypass_demo.py`): static credential is accepted by the protected API, bypassing zero-trust controls.*
+
+---
+
 ## Objective
 Demonstrate how an attacker could exploit a critical DNS vulnerability (CVE-2025-40775) to crash DNS servers, disrupt Non-Human Identity (NHI) secret rotation workflows, and hijack machine identities—thereby bypassing zero-trust security frameworks. This project focuses on protocol-level vulnerabilities and NHI lifecycle gaps, avoiding AI/ML dependencies.
 
@@ -88,19 +121,3 @@ The `vulnerable_bind` service is built from source using the official 9.20.8 tar
 ## Disclaimer
 
 This repository is for educational and research purposes only. Do not use these techniques or code for unauthorized or malicious activities. See [DISCLAIMER.md](DISCLAIMER.md).
-
-## Screenshots
-
-Below are example screenshots from the demonstration. For best results, capture and replace these with your own environment output.
-
-| Step | Screenshot |
-|------|------------|
-| **1. DNS Exploit (BIND Crash)** | ![BIND 9.20.8 crash after TSIG exploit](screenshots/bind_crash.png) |
-| **2. NHI Secret Rotation Failure** | ![NHI client fails to rotate secret](screenshots/nhi_rotation_failure.png) |
-| **3. Zero-Trust Bypass** | ![Bypass using static credential](screenshots/zero_trust_bypass.png) |
-
-*See `screenshots/README.md` for details and instructions on updating these images.*
-
----
-
-*For more details, see code comments and individual scripts.*

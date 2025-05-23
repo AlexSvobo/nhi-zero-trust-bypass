@@ -4,7 +4,7 @@
 FROM debian:bookworm-slim
 
 LABEL maintainer="Your Name <your.email@example.com>"
-LABEL description="BIND 9.20.0 built from source for CVE-2025-40775 testing"
+LABEL description="BIND 9.20.8 built from source for CVE-2025-40775 testing"
 
 ENV BIND_VERSION=9.20.8
 ENV TZ=America/New_York

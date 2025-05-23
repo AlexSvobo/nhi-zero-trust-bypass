@@ -1,28 +1,27 @@
 # Exploit and Bypass Screenshots
 
-Below are screenshots demonstrating the exploit and bypass steps from this lab. These can be referenced in the README or used for presentations and documentation.
+This directory contains screenshots referenced in the main [README.md](../README.md) to demonstrate the exploit and bypass steps from this lab. For each step, see the images below:
 
 ---
 
 ## 1. DNS Exploit (BIND Crash)
+**A. Exploit Packet Sent**  
+![BIND 9.20.8 crafted packet sent](bind_crash.png)
 
-![BIND 9.20.8 crash after TSIG exploit](screenshots/bind_crash.png)
-*BIND 9.20.8 container crashes after receiving a malformed TSIG DNS packet (see `dns_exploit.py`).*
+**B. Container Crash Confirmed**  
+![BIND crash container status](bind_crash2.png)
+
+**C. Crash Log Evidence**  
+![BIND crash log](bind_crash3.png)
 
 ---
 
 ## 2. NHI Secret Rotation Failure
-
-![NHI client fails to rotate secret](screenshots/nhi_rotation_failure.png)
-*NHI client (`client_nhi_rotation.py`) fails to rotate secret due to DNS outage, falls back to static credential.*
+![NHI client fails to rotate secret](nhi_rotation_failure.png)
 
 ---
 
 ## 3. Zero-Trust Bypass
-
-![Bypass using static credential](screenshots/zero_trust_bypass.png)
-*Bypass demonstration (`bypass_demo.py`): static credential is accepted by the protected API, bypassing zero-trust controls.*
+![Bypass using static credential](zero_trust_bypass.png)
 
 ---
-
-> **Note:** Replace these images with your own screenshots if you rerun the demo. Place images in the `screenshots/` directory and update this file as needed.
